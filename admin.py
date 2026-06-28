@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from .models import Question, Choice, Submission, Lesson
+from .models import Course, Instructor, Learner, Enrollment, Question, Choice, Submission, Lesson
 
 
 class ChoiceInline(admin.TabularInline):
@@ -44,6 +44,10 @@ class LessonAdmin(admin.ModelAdmin):
     search_fields = ['title']
 
 
+admin.site.register(Course)
+admin.site.register(Instructor)
+admin.site.register(Learner)
+admin.site.register(Enrollment)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Choice)
 admin.site.register(Submission)

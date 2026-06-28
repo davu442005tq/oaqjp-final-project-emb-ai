@@ -26,6 +26,7 @@ def submit(request, course_id):
     questions = course.questions.all()
     total = questions.count()
     correct = 0
+    selected_ids = {}
 
     for question in questions:
         choice_key = request.POST.get(f'choice_{question.id}')
@@ -39,18 +40,21 @@ def submit(request, course_id):
                 )
                 if selected.is_correct:
                     correct += 1
+                selected_ids[question.id] = int(choice_key)
             except Choice.DoesNotExist:
                 continue
 
-    score = int((correct / total) * 100) if total > 0 else 0
-    passed = score >= 50
+    grade = int((correct / total) * 100) if total > 0 else 0
+    passed = grade >= 50
 
     return render(request, 'onlinecourse/exam_result.html', {
         'course': course,
-        'score': score,
+        'grade': grade,
+        'score': grade,
         'correct': correct,
         'total': total,
         'passed': passed,
+        'selected_ids': selected_ids,
     })
 
 
@@ -61,14 +65,20 @@ def show_exam_result(request, course_id):
     submissions = Submission.objects.filter(user=request.user, question__course=course)
     correct = sum(1 for s in submissions if s.selected_choice.is_correct)
     total = questions.count()
-    score = int((correct / total) * 100) if total > 0 else 0
-    passed = score >= 50
+    grade = int((correct / total) * 100) if total > 0 else 0
+    passed = grade >= 50
+
+    selected_ids = {}
+    for s in submissions:
+        selected_ids[s.question_id] = s.selected_choice_id
 
     return render(request, 'onlinecourse/exam_result.html', {
         'course': course,
-        'score': score,
+        'grade': grade,
+        'score': grade,
         'correct': correct,
         'total': total,
         'passed': passed,
         'submissions': submissions,
+        'selected_ids': selected_ids,
     })
