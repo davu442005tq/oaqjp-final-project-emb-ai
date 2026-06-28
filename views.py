@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from .models import Course, Question, Choice, Submission
+from .models import Course, Learner, Enrollment, Question, Choice, Submission
 
 
 def course_details(request, course_id):
@@ -14,9 +14,12 @@ def course_details(request, course_id):
 def exam(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     questions = course.questions.all()
+    learner = get_object_or_404(Learner, user=request.user)
+    enrollment, _ = Enrollment.objects.get_or_create(learner=learner, course=course)
     return render(request, 'onlinecourse/exam.html', {
         'course': course,
         'questions': questions,
+        'enrollment': enrollment,
     })
 
 
@@ -24,6 +27,8 @@ def exam(request, course_id):
 def submit(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     questions = course.questions.all()
+    learner = get_object_or_404(Learner, user=request.user)
+    enrollment = get_object_or_404(Enrollment, learner=learner, course=course)
     total = questions.count()
     correct = 0
     selected_ids = {}
@@ -34,8 +39,8 @@ def submit(request, course_id):
             try:
                 selected = Choice.objects.get(pk=choice_key, question=question)
                 Submission.objects.update_or_create(
+                    enrollment=enrollment,
                     question=question,
-                    user=request.user,
                     defaults={'selected_choice': selected}
                 )
                 if selected.is_correct:
@@ -61,8 +66,10 @@ def submit(request, course_id):
 @login_required
 def show_exam_result(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
+    learner = get_object_or_404(Learner, user=request.user)
+    enrollment = get_object_or_404(Enrollment, learner=learner, course=course)
     questions = course.questions.all()
-    submissions = Submission.objects.filter(user=request.user, question__course=course)
+    submissions = Submission.objects.filter(enrollment=enrollment)
     correct = sum(1 for s in submissions if s.selected_choice.is_correct)
     total = questions.count()
     grade = int((correct / total) * 100) if total > 0 else 0
