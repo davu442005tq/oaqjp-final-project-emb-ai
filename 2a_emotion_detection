@@ -1,0 +1,43 @@
+import json
+from ibm_watson import NaturalLanguageUnderstandingV1
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+
+def emotion_detector(text_to_analyse):
+    authenticator = IAMAuthenticator('YOUR_API_KEY')
+    nlu = NaturalLanguageUnderstandingV1(
+        version='2021-08-01',
+        authenticator=authenticator
+    )
+    nlu.set_service_url('YOUR_SERVICE_URL')
+
+    if not text_to_analyse:
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
+
+    response = nlu.analyze(
+        text=text_to_analyse,
+        features={'emotion': {}}
+    ).get_result()
+
+    emotions = response['emotion']['document']['emotion']
+    dominant_score = 0
+    dominant = ''
+    for emotion, score in emotions.items():
+        if score > dominant_score:
+            dominant_score = score
+            dominant = emotion
+
+    return {
+        'anger': emotions['anger'],
+        'disgust': emotions['disgust'],
+        'fear': emotions['fear'],
+        'joy': emotions['joy'],
+        'sadness': emotions['sadness'],
+        'dominant_emotion': dominant
+    }
