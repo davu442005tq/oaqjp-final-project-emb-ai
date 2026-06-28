@@ -1,0 +1,13 @@
+PS C:\Users\PC> python
+Python 3.10.0 (default, Oct  4 2021, 17:55:01) [MSC v.1929 64 bit (AMD64)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import EmotionDetection
+>>> EmotionDetection.__name__
+'EmotionDetection'
+>>> EmotionDetection.__package__
+'EmotionDetection'
+>>> from EmotionDetection.emotion_detection import emotion_detector
+>>> result = emotion_detector("I love this!")
+>>> print(result)
+{'anger': 0.01, 'disgust': 0.002, 'fear': 0.01, 'joy': 0.95, 'sadness': 0.01, 'dominant_emotion': 'joy'}
+>>>
